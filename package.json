@@ -1,0 +1,18 @@
+{
+  "name": "chatonline",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "install:all": "npm --prefix server i && npm --prefix client i",
+    "build": "npm --prefix client ci && npm --prefix client run build && shx rm -rf server/public && shx mkdir -p server/public && shx cp -r client/dist/* server/public/",
+    "start": "npm --prefix server start",
+    "dev": "npm --prefix server run dev"
+  },
+  "devDependencies": {
+    "shx": "^0.3.4"
+  }
+}
+

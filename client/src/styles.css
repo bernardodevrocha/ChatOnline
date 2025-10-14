@@ -10,6 +10,7 @@
   --success: #2dd4bf;
   --shadow: 0 8px 30px rgba(0,0,0,0.35);
   --radius: 14px;
+  color-scheme: dark;
 }
 
 *{box-sizing:border-box}
@@ -70,6 +71,39 @@ body{
 .input-error{border-color:var(--danger)}
 .error{color:var(--danger);font-size:12px}
 
+/* Melhorar legibilidade de selects e opções no tema escuro */
+select.input{appearance:none;-webkit-appearance:none;-moz-appearance:none;cursor:pointer}
+/* Add a caret/arrow indicator using CSS gradients */
+select.input{
+  padding-right: 38px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%),
+    linear-gradient(to right, rgba(255,255,255,0.16), rgba(255,255,255,0.16));
+  background-position:
+    calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 12px) calc(50% - 2px),
+    calc(100% - 32px) 50%;
+  background-size: 6px 6px, 6px 6px, 1px 18px;
+  background-repeat: no-repeat;
+}
+select.input:focus{
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--primary) 50%),
+    linear-gradient(135deg, var(--primary) 50%, transparent 50%),
+    linear-gradient(to right, var(--primary), var(--primary));
+}
+select.input option{
+  background-color: var(--bg);
+  color: var(--text);
+}
+select.input option:checked{
+  background-color: var(--primary);
+  color: #fff;
+}
+/* Placeholder mais legível */
+.input::placeholder{color:#c7cfdd;opacity:.85}
+
 .actions{display:flex;gap:10px;align-items:center}
 .btn{
   appearance:none;border:0;cursor:pointer;border-radius:12px;padding:12px 16px;font-weight:600
@@ -90,4 +124,3 @@ body{
 @media (max-width: 900px){
   .grid-2{grid-template-columns:1fr}
 }
-
