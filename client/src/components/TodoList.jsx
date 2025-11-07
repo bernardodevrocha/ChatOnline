@@ -20,8 +20,14 @@ export default function TodoList({ socket, roomId, showFilters }) {
 
   useEffect(() => {
     if (!socket) return;
-    const onCreated = (item) => setItems((it) => [...it, item]);
-    const onUpdated = (item) => setItems((it) => it.map((x) => x.id === item.id ? item : x));
+    const onCreated = (item) => setItems((it) => (
+      it.some((x) => x.id === item.id) ? it : [...it, item]
+    ));
+    const onUpdated = (item) => setItems((it) => (
+      it.some((x) => x.id === item.id)
+        ? it.map((x) => (x.id === item.id ? item : x))
+        : [...it, item]
+    ));
     const onDeleted = ({ id }) => setItems((it) => it.filter((x) => x.id !== id));
     socket.on('todo:created', onCreated);
     socket.on('todo:updated', onUpdated);
@@ -36,7 +42,12 @@ export default function TodoList({ socket, roomId, showFilters }) {
   function add(e) {
     e.preventDefault();
     if (!text.trim()) return;
-    socket.emit('todo:create', { roomId, text }, (res) => { if (res?.error) alert(res.error); });
+    socket.emit('todo:create', { roomId, text }, (res) => {
+      if (res?.error) { alert(res.error); return; }
+      if (res?.item) setItems((it) => (
+        it.some((x) => x.id === res.item.id) ? it : [...it, res.item]
+      ));
+    });
     setText('');
   }
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPeerConnection, getLocalStream } from '../webrtc';
+import Icon from './Icon';
 
 export default function VideoGrid({ socket, roomId }) {
   const localVideoRef = useRef(null);
@@ -71,26 +72,32 @@ export default function VideoGrid({ socket, roomId }) {
     // Kick off an initial offer broadcast to others
     createAndOffer();
     return () => socket.off('webrtc:signal', onSignal);
-  }, [socket, roomId, peers]);
+  }, [socket, roomId]);
 
   return (
-    <div>
-      <h3>Video</h3>
-      <div className="actions" style={{gap:8, margin:'8px 0'}}>
-        <button className="btn btn-ghost" onClick={() => {
-          const [t] = localStreamRef.current?.getAudioTracks() || [];
-          if (t) { t.enabled = !t.enabled; setMicOn(t.enabled); }
-        }}>{micOn ? 'Mutar microfone' : 'Ativar microfone'}</button>
-        <button className="btn btn-ghost" onClick={() => {
-          const [t] = localStreamRef.current?.getVideoTracks() || [];
-          if (t) { t.enabled = !t.enabled; setCamOn(t.enabled); }
-        }}>{camOn ? 'Desligar câmera' : 'Ligar câmera'}</button>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
-        <video ref={localVideoRef} autoPlay muted playsInline style={{ background: '#000', width: '100%', height: 150, opacity: camOn ? 1 : .5 }} />
+    <div className="video-surface">
+      <h3 className="title" style={{fontSize:18}}>Chamada</h3>
+      <div className="video-grid">
+        <video ref={localVideoRef} className="video-local" autoPlay muted playsInline style={{ opacity: camOn ? 1 : .5 }} />
         {Object.entries(peers).map(([id, { stream }]) => (
           <Video key={id} stream={stream} />
         ))}
+      </div>
+      <div className="video-toolbar">
+        <button aria-pressed={micOn} title={micOn? 'Mutar microfone':'Ativar microfone'} className={`btn-icon btn-toggle ${micOn? 'active':'inactive'}`} onClick={() => {
+          const [t] = localStreamRef.current?.getAudioTracks() || [];
+          if (t) { t.enabled = !t.enabled; setMicOn(t.enabled); }
+        }}>
+          <Icon name={micOn? 'mic':'mic-off'} />
+          <span className="label">Mic</span>
+        </button>
+        <button aria-pressed={camOn} title={camOn? 'Desligar câmera':'Ligar câmera'} className={`btn-icon btn-toggle ${camOn? 'active':'inactive'}`} onClick={() => {
+          const [t] = localStreamRef.current?.getVideoTracks() || [];
+          if (t) { t.enabled = !t.enabled; setCamOn(t.enabled); }
+        }}>
+          <Icon name={camOn? 'video':'video-off'} />
+          <span className="label">Cam</span>
+        </button>
       </div>
     </div>
   );
@@ -99,5 +106,5 @@ export default function VideoGrid({ socket, roomId }) {
 function Video({ stream }) {
   const ref = useRef(null);
   useEffect(() => { if (ref.current) ref.current.srcObject = stream; }, [stream]);
-  return <video autoPlay playsInline ref={ref} style={{ background: '#000', width: '100%', height: 150 }} />;
+  return <video autoPlay playsInline ref={ref} className="video-remote" />;
 }

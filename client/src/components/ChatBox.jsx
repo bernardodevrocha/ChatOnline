@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import Icon from './Icon';
 
 export default function ChatBox({ socket, roomId, history }) {
   const [text, setText] = useState('');
@@ -9,7 +10,9 @@ export default function ChatBox({ socket, roomId, history }) {
 
   useEffect(() => {
     if (!socket) return;
-    const onMsg = (msg) => setMessages((m) => [...m, msg]);
+    const onMsg = (msg) => {
+      setMessages((m) => (m.some((x) => x.id === msg.id) ? m : [...m, msg]));
+    };
     socket.on('chat:message', onMsg);
     return () => socket.off('chat:message', onMsg);
   }, [socket]);
@@ -19,25 +22,33 @@ export default function ChatBox({ socket, roomId, history }) {
   function send(e) {
     e.preventDefault();
     if (!text.trim()) return;
-    socket.emit('chat:message', { roomId, content: text.trim() }, (res) => {
-      if (res?.error) alert(res.error);
+    const content = text.trim();
+    socket.emit('chat:message', { roomId, content }, (res) => {
+      if (res?.error) { alert(res.error); return; }
+      if (res?.message) {
+        // Garante que não duplique quando o broadcast chegar
+        setMessages((m) => (m.some((x) => x.id === res.message.id) ? m : [...m, res.message]));
+      }
     });
     setText('');
   }
 
   return (
-    <div style={{ height: 300, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ flex: 1, overflow: 'auto' }}>
+    <div className="chat-wrap">
+      <div className="chat-messages">
         {messages.map((m) => (
-          <div key={m.id || Math.random()}>
-            <b>{m.user_name || m.userId}:</b> {m.content}
+          <div key={m.id || Math.random()} className={`msg`}>
+            <div className="meta">{m.user_name || m.userId}</div>
+            <div>{m.content}</div>
           </div>
         ))}
         <div ref={endRef} />
       </div>
-      <form onSubmit={send} style={{ display: 'flex', gap: 8 }}>
+      <form onSubmit={send} className="chat-input">
         <input className="input" value={text} onChange={(e) => setText(e.target.value)} placeholder="Mensagem..." />
-        <button className="btn btn-primary">Enviar</button>
+        <button className="btn btn-primary btn-send" title="Enviar">
+          <Icon name="send" /> <span>Enviar</span>
+        </button>
       </form>
     </div>
   );
