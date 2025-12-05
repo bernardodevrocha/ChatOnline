@@ -7,6 +7,7 @@ import { config } from './config.js';
 import authRoutes from './routes/auth.js';
 import roomsRoutes from './routes/rooms.js';
 import todosRoutes from './routes/todos.js';
+import invitesRoutes from './routes/invites.js';
 import { createSocketServer } from './socket/index.js';
 
 const app = express();
@@ -21,6 +22,7 @@ app.get('/health', (_req, res) => res.json({ ok: true }));
 app.use('/auth', authRoutes);
 app.use('/rooms', roomsRoutes);
 app.use('/todos', todosRoutes);
+app.use('/invites', invitesRoutes);
 
 // 404 handler
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
@@ -37,4 +39,3 @@ createSocketServer(server, config.clientOrigin);
 server.listen(config.port, () => {
   console.log(`Server listening on http://localhost:${config.port}`);
 });
-

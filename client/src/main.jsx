@@ -7,16 +7,21 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Lobby from './pages/Lobby.jsx';
 import Room from './pages/Room.jsx';
+import InviteJoin from './pages/InviteJoin.jsx';
+import RequireAuth from './RequireAuth.jsx';
 
 const Root = () => (
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<App />}>        
+      <Route path="/" element={<App />}>
         <Route index element={<Navigate to="/lobby" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/lobby" element={<Lobby />} />
-        <Route path="/room/:id" element={<Room />} />
+        <Route element={<RequireAuth />}>
+          <Route path="/lobby" element={<Lobby />} />
+          <Route path="/room/:id" element={<Room />} />
+          <Route path="/invite/:token" element={<InviteJoin />} />
+        </Route>
       </Route>
     </Routes>
   </BrowserRouter>

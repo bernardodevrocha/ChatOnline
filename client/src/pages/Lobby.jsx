@@ -7,6 +7,7 @@ import TodoList from '../components/TodoList';
 export default function Lobby() {
   const [rooms, setRooms] = useState([]);
   const [name, setName] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [error, setError] = useState('');
@@ -34,7 +35,7 @@ export default function Lobby() {
     e.preventDefault();
     setError('');
     try {
-      const { data } = await api.post('/rooms', { name });
+      const { data } = await api.post('/rooms', { name, isPrivate });
       navigate(`/room/${data.id}`);
     } catch (e) {
       setError(e.response?.data?.error || 'Erro');
@@ -65,6 +66,22 @@ export default function Lobby() {
       prompt('Copie o link da sala:', url);
     });
   }
+  async function createInvite(room){
+    try{
+      const { data } = await api.post(`/invites/room/${room.id}`, {
+        expiresInHours: 24,
+        maxUses: 10,
+      });
+      const url = `${window.location.origin}/invite/${data.token}`;
+      navigator.clipboard.writeText(url).then(()=>{
+        alert('Convite copiado para a área de transferência!');
+      }, ()=>{
+        prompt('Copie o link de convite da sala:', url);
+      });
+    }catch(e){
+      alert(e.response?.data?.error || 'Falha ao gerar convite');
+    }
+  }
 
   const user = useMemo(()=>getUser(), []);
 
@@ -73,8 +90,12 @@ export default function Lobby() {
       <div className="card">
         <div className="card-inner">
           <h2 className="title">Salas</h2>
-          <form onSubmit={createRoom} className="actions" style={{marginTop:12}}>
+          <form onSubmit={createRoom} className="actions" style={{marginTop:12, flexWrap:'wrap', gap:8}}>
             <input className="input" placeholder="Nome da sala" value={name} onChange={(e) => setName(e.target.value)} required />
+            <label style={{display:'flex', alignItems:'center', gap:6, fontSize:13}}>
+              <input type="checkbox" checked={isPrivate} onChange={(e)=>setIsPrivate(e.target.checked)} />
+              Sala privada (apenas via convite)
+            </label>
             <button className="btn btn-primary">Criar</button>
           </form>
           {error && <div className="error" style={{marginTop:8}}>{error}</div>}
@@ -86,7 +107,10 @@ export default function Lobby() {
                   {editingId===r.id ? (
                     <input className="input" style={{maxWidth:260}} value={editingName} onChange={(e)=>setEditingName(e.target.value)} />
                   ) : (
-                    <Link className="link" to={`/room/${r.id}`}>{r.name}</Link>
+                    <>
+                      <Link className="link" to={`/room/${r.id}`}>{r.name}</Link>
+                      {r.is_private ? <span style={{fontSize:11, padding:'2px 6px', borderRadius:999, border:'1px solid rgba(255,255,255,0.3)'}}>Privada</span> : null}
+                    </>
                   )}
                 </div>
                 <div className="actions">
@@ -100,6 +124,9 @@ export default function Lobby() {
                       <button className="btn btn-ghost" onClick={()=>copyLink(r)}>Compartilhar</button>
                       {user && user.id === r.owner_id && (
                         <>
+                          {r.is_private ? (
+                            <button className="btn btn-ghost" onClick={()=>createInvite(r)}>Gerar convite</button>
+                          ) : null}
                           <button className="btn btn-ghost" onClick={()=>startEdit(r)}>Renomear</button>
                           <button className="btn btn-ghost" onClick={()=>removeRoom(r)}>Excluir</button>
                         </>

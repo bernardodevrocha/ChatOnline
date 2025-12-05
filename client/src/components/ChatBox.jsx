@@ -21,6 +21,10 @@ export default function ChatBox({ socket, roomId, history }) {
 
   function send(e) {
     e.preventDefault();
+    if (!socket) {
+      alert('Você precisa estar logado e conectado para enviar mensagens.');
+      return;
+    }
     if (!text.trim()) return;
     const content = text.trim();
     socket.emit('chat:message', { roomId, content }, (res) => {
